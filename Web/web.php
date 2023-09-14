@@ -1,6 +1,6 @@
 <?php
     $dir_local = "files/"; // Ruta local donde se guardarán los archivos
-    #$dir_remote = "\\\\192.168.1.11\\files\\"; // Ruta remota donde se guardarán los archivos
+    $dir_remote = "\\\\192.168.1.11\\files\\"; // Ruta remota donde se guardarán los archivos
     $selected_dir = $dir_local; // Ruta por defecto: directorio local
 
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
@@ -113,16 +113,42 @@
 
     <!-- Listado de archivos -->
     <ul>
-    <?php
-    $files = array_diff(scandir($selected_dir), array('.', '..'));
-    foreach($files as $file){
-        echo "<li><a href=\"$selected_dir$file\">$file</a>
-        <form method=\"POST\">
-            <button name=\"delete\" value=\"$file\">Eliminar</button>
-            <button name=\"execute\" value=\"$file\">Ejecutar</button>
-        </form></li>";
+   <?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['delete'])) {
+        // Lógica para eliminar archivos
+    } elseif (isset($_POST['execute'])) {
+        $fileToExecute = $_POST['execute'];
+        $filePath = $selected_dir . $fileToExecute;
+        
+        if (file_exists($filePath) && is_file($filePath)) {
+            // Verificar que el archivo tiene una extensión permitida (por ejemplo, .php)
+            $allowedExtensions = ['php', 'js', 'html']; // Agrega extensiones permitidas aquí
+            $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION);
+            
+            if (in_array($fileExtension, $allowedExtensions)) {
+                // Ejecutar el archivo
+                include($filePath);
+            } else {
+                echo "No se pudo ejecutar el archivo '$fileToExecute'. Extensión no permitida.";
+            }
+        } else {
+            echo "No se pudo ejecutar el archivo '$fileToExecute'. Asegúrate de que exista.";
+        }
     }
-    ?>
+}
+
+$files = array_diff(scandir($selected_dir), array('.', '..'));
+foreach ($files as $file) {
+    echo "<li><a href=\"$selected_dir$file\">$file</a>
+    <form method=\"POST\">
+        <button type=\"submit\" name=\"delete\" value=\"$file\">Eliminar</button>
+        <button type=\"submit\" name=\"execute\" value=\"$file\">Ejecutar</button>
+    </form></li>";
+}
+?>
+
+
     </ul>
 </body>
 </html>
